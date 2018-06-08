@@ -6,7 +6,7 @@ _LOGGER = logging.getLogger(__name__)
 
 class meter(object):
     """
-    This is a collection of all of the data availble for a meter.
+    This is a collection of meter data that we care about.
     """
 
     def __init__(self, api_interface, meter_type, meter_id, meter_start_date):
@@ -82,4 +82,5 @@ class meter(object):
             self.date = datetime.now()
             self.api._get_billing_info(self)
             self.api._get_usage_chart_data(self)
+            self.api._logout()
 
