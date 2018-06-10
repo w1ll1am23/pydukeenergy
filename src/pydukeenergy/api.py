@@ -43,7 +43,8 @@ class DukeEnergy(object):
         self.password = password
         self.meters = []
         self.session = None
-        self._login()
+        if not self._login():
+            raise DukeEnergyException("")
 
     def get_meters(self):
         try:
@@ -154,5 +155,6 @@ class DukeEnergy(object):
             self.logout()
 
 
-
+class DukeEnergyException(Exception):
+    pass
 

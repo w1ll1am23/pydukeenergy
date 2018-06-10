@@ -72,6 +72,9 @@ class Meter(object):
         else:
             _LOGGER.error("Invalid meter type {}".format(self.type))
 
+    def get_days_billed(self):
+        return self.billing_days
+
     def get_unit(self):
         return self.unit
 
