@@ -4,7 +4,7 @@ from datetime import datetime
 _LOGGER = logging.getLogger(__name__)
 
 
-class meter(object):
+class Meter(object):
     """
     This is a collection of meter data that we care about.
     """
@@ -25,7 +25,6 @@ class meter(object):
         self.date = datetime.now()
         self.update(True)
 
-
     def set_billing_usage(self, _dict):
         self.billing_days = _dict.get("BillingDays")
         self.total_kwh = _dict.get("ElectricityUsed")
@@ -34,41 +33,41 @@ class meter(object):
         self.average_gas = _dict.get("AvgGasUsed")
 
     def set_chart_usage(self, _dict):
-        unit1 =  _dict.get("unitOfMeasure1")
+        unit1 = _dict.get("unitOfMeasure1")
         unit2 = _dict.get("unitOfMeasure2")
         if unit1:
             self.unit = unit1
         else:
             self.unit = unit2
-        if (self.type == "ELECTRIC"):
+        if self.type == "ELECTRIC":
             electric = _dict.get("meterData").get("Electric")
             self.yesterdays_kwh = electric[-1]
-        elif (self.type == "GAS"):
+        elif self.type == "GAS":
             gas = _dict.get("meterData").get("Gas")
             self.yesterdays_gas = gas[-1]
         else:
             _LOGGER.error("Invalid meter type {}".format(self.type))
 
     def get_usage(self):
-        if (self.type == "ELECTRIC"):
+        if self.type == "ELECTRIC":
             return self.yesterdays_kwh
-        elif (self.type == "GAS"):
+        elif self.type == "GAS":
             return self.yesterdays_gas
         else:
             _LOGGER.error("Invalid meter type {}".format(self.type))
 
     def get_average(self):
-        if (self.type == "ELECTRIC"):
+        if self.type == "ELECTRIC":
             return self.average_kwh
-        elif (self.type == "GAS"):
+        elif self.type == "GAS":
             return self.average_gas   
         else:
             _LOGGER.error("Invalid meter type {}".format(self.type)) 
 
     def get_total(self):
-        if (self.type == "ELECTRIC"):
+        if self.type == "ELECTRIC":
             return self.total_kwh
-        elif (self.type == "GAS"):
+        elif self.type == "GAS":
             return self.total_gas
         else:
             _LOGGER.error("Invalid meter type {}".format(self.type))
@@ -80,7 +79,7 @@ class meter(object):
         if (datetime.now().hour == 0 and self.date.hour != 0) or force:
             _LOGGER.info("Getting new meter info")
             self.date = datetime.now()
-            self.api._get_billing_info(self)
-            self.api._get_usage_chart_data(self)
-            self.api._logout()
+            self.api.get_billing_info(self)
+            self.api.get_usage_chart_data(self)
+            self.api.logout()
 
