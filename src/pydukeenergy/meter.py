@@ -9,11 +9,14 @@ class Meter(object):
     This is a collection of meter data that we care about.
     """
 
-    def __init__(self, api_interface, meter_type, meter_id, meter_start_date):
+    def __init__(self, api_interface, meter_type, meter_id, meter_start_date, update_interval):
         self.api = api_interface
         self.type = meter_type
         self.id = meter_id
         self.start_date = meter_start_date
+        self.update_interval = 10
+        if update_interval > 10:
+            self.update_interval = update_interval
         self.yesterdays_kwh = None
         self.yesterdays_gas = None
         self.billing_days = None
@@ -79,7 +82,7 @@ class Meter(object):
         return self.unit
 
     def update(self, force=False):
-        if (datetime.now().hour == 0 and self.date.hour != 0) or force:
+        if ((self.date - datetime.now()).seconds / 3600 >= self.update_interval) or force:
             _LOGGER.info("Getting new meter info")
             self.date = datetime.now()
             self.api.get_billing_info(self)

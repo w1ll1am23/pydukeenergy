@@ -27,12 +27,13 @@ class DukeEnergy(object):
     API interface object.
     """
 
-    def __init__(self, email, password):
+    def __init__(self, email, password, update_interval=60):
         """
         Create the Duke Energy API interface object.
         Args:
             email (str): Duke Energy account email address.
             password (str): Duke Energy account password.
+            update_interval (int): How often an update should occur. (Min=10)
         """
         global USER_AGENT
         version_info = sys.version_info
@@ -43,6 +44,7 @@ class DukeEnergy(object):
         self.password = password
         self.meters = []
         self.session = None
+        self.update_interval = update_interval
         if not self._login():
             raise DukeEnergyException("")
 
@@ -151,7 +153,7 @@ class DukeEnergy(object):
             for meter in meter_data:
                 meter_type, meter_id = meter["text"].split(" - ")
                 meter_start_date = meter["CalendarStartDate"]
-                self.meters.append(Meter(self, meter_type, meter_id, meter_start_date))
+                self.meters.append(Meter(self, meter_type, meter_id, meter_start_date, self.update_interval))
             self.logout()
 
 
