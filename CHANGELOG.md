@@ -1,5 +1,8 @@
 # Change log
 
+## 0.0.3
+- Added debug logging to requests
+
 ## 0.0.2
 - Make update interval configurable
 
