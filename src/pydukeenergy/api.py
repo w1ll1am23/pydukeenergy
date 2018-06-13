@@ -73,6 +73,7 @@ class DukeEnergy(object):
                     _LOGGER.error("Billing info: " + response.json()["ErrorMsg"])
                     return False
                 if response.json()["Status"] == "OK":
+                    _LOGGER.debug(str(response.content))
                     meter.set_billing_usage(response.json()["Data"][-1])
                     return True
                 else:
@@ -111,6 +112,7 @@ class DukeEnergy(object):
                     _LOGGER.error("Usage data: " + response.json()["ErrorMsg"])
                     return False
                 if response.json()["Status"] == "OK":
+                    _LOGGER.debug(str(response.content))
                     meter.set_chart_usage(response.json())
                 else:
                     _LOGGER.error("Status was {}".format(response.json()["Status"]))
@@ -148,8 +150,10 @@ class DukeEnergy(object):
         """
         if self._login():
             response = self.session.get(METER_ACTIVE_URL, timeout=10)
+            _LOGGER.debug(str(response.text))
             soup = BeautifulSoup(response.text, "html.parser")
             meter_data = json.loads(soup.find("duke-dropdown", {"id": "meter"})["items"])
+            _LOGGER.debug(str(meter_data))
             for meter in meter_data:
                 meter_type, meter_id = meter["text"].split(" - ")
                 meter_start_date = meter["CalendarStartDate"]
