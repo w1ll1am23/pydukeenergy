@@ -1,5 +1,8 @@
 # Change log
 
+## 0.0.4
+- Fixed update logic
+
 ## 0.0.3
 - Added debug logging to requests
 

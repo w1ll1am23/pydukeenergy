@@ -82,7 +82,7 @@ class Meter(object):
         return self.unit
 
     def update(self, force=False):
-        if ((self.date - datetime.now()).seconds / 3600 >= self.update_interval) or force:
+        if ((datetime.now() - self.date).seconds / 60 >= self.update_interval) or force:
             _LOGGER.info("Getting new meter info")
             self.date = datetime.now()
             self.api.get_billing_info(self)

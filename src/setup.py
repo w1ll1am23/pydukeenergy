@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='pydukeenergy',
-      version='0.0.3',
+      version='0.0.4',
       description='Interface to the unofficial Duke Energy API',
       url='http://github.com/w1ll1am23/pyduke-energy',
       author='William Scanlon',
