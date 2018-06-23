@@ -49,10 +49,7 @@ class DukeEnergy(object):
             raise DukeEnergyException("")
 
     def get_meters(self):
-        try:
-            self._get_meters()
-        except:
-            return self.meters
+        self._get_meters()
         return self.meters
 
     def get_billing_info(self, meter):
@@ -152,7 +149,7 @@ class DukeEnergy(object):
             response = self.session.get(METER_ACTIVE_URL, timeout=10)
             _LOGGER.debug(str(response.text))
             soup = BeautifulSoup(response.text, "html.parser")
-            meter_data = json.loads(soup.find("duke-dropdown", {"id": "meter"})["items"])
+            meter_data = json.loads(soup.find("duke-dropdown", {"id": "usageAnalysisMeter"})["items"])
             _LOGGER.debug(str(meter_data))
             for meter in meter_data:
                 meter_type, meter_id = meter["text"].split(" - ")

@@ -1,5 +1,8 @@
 # Change log
 
+## 0.0.5
+- Duke changed the naming of the meter dropdown.
+
 ## 0.0.4
 - Fixed update logic
 
