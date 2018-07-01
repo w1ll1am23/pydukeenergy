@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import datetime
 
 _LOGGER = logging.getLogger(__name__)
@@ -87,5 +88,4 @@ class Meter(object):
             self.date = datetime.now()
             self.api.get_billing_info(self)
             self.api.get_usage_chart_data(self)
-            self.api.logout()
 

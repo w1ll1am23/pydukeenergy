@@ -15,7 +15,7 @@ BILLING_INFORMATION_URL = USAGE_ANALYSIS_URL + "GetBillingInformation"
 METER_ACTIVE_URL = BASE_URL + "my-account/usage-analysis"
 USAGE_CHART_URL = USAGE_ANALYSIS_URL + "GetUsageChartData"
 
-USER_AGENT = {"User-Agent": "python/{}.{} pyduke-energy/0.0.1"}
+USER_AGENT = {"User-Agent": "python/{}.{} pyduke-energy/0.0.6"}
 LOGIN_HEADERS = {"Content-Type": "application/x-www-form-urlencoded"}
 USAGE_ANALYSIS_HEADERS = {"Content-Type": "application/json", "Accept": "application/json, text/plain, */*"}
 
@@ -43,7 +43,7 @@ class DukeEnergy(object):
         self.email = email
         self.password = password
         self.meters = []
-        self.session = None
+        self.session = requests.Session()
         self.update_interval = update_interval
         if not self._login():
             raise DukeEnergyException("")
@@ -56,28 +56,31 @@ class DukeEnergy(object):
         """
         Pull the billing info for the meter.
         """
-        if self.session or self._login():
+        if self.session.cookies or self._login():
             post_body = {"MeterNumber": meter.type + " - " + meter.id}
             headers = USAGE_ANALYSIS_HEADERS.copy()
             headers.update(USER_AGENT)
             response = self.session.post(BILLING_INFORMATION_URL, data=json.dumps(post_body), headers=headers,
                                          timeout=10)
+            _LOGGER.debug(str(response.content))
             try:
                 if response.status_code != 200:
                     _LOGGER.error("Billing info request failed: " + response.status_code)
+                    self._logout()
                     return False
                 if response.json()["Status"] == "ERROR":
-                    _LOGGER.error("Billing info: " + response.json()["ErrorMsg"])
+                    self._logout()
                     return False
                 if response.json()["Status"] == "OK":
-                    _LOGGER.debug(str(response.content))
                     meter.set_billing_usage(response.json()["Data"][-1])
                     return True
                 else:
                     _LOGGER.error("Status was {}".format(response.json()["Status"]))
+                    self._logout()
                     return False
             except Exception as e:
-                _LOGGER.exception("Something went wrong.")
+                _LOGGER.exception("Something went wrong. Logging out and trying again.")
+                self._logout()
                 return False
 
     def get_usage_chart_data(self, meter):
@@ -89,7 +92,7 @@ class DukeEnergy(object):
             the_date = meter.date - timedelta(days=1)
         else:
             the_date = meter.date
-        if self.session or self._login():
+        if self.session.cookies or self._login():
             post_body = {
                 "Graph": "DailyEnergy",
                 "BillingFrequency": "Week",
@@ -101,21 +104,24 @@ class DukeEnergy(object):
             headers = USAGE_ANALYSIS_HEADERS.copy()
             headers.update(USER_AGENT)
             response = self.session.post(USAGE_CHART_URL, data=json.dumps(post_body), headers=headers, timeout=10)
+            _LOGGER.debug(str(response.content))
             try:
                 if response.status_code != 200:
                     _LOGGER.error("Usage data request failed: " + response.status_code)
+                    self._logout()
                     return False
                 if response.json()["Status"] == "ERROR":
-                    _LOGGER.error("Usage data: " + response.json()["ErrorMsg"])
+                    self._logout()
                     return False
                 if response.json()["Status"] == "OK":
-                    _LOGGER.debug(str(response.content))
                     meter.set_chart_usage(response.json())
+                    return True
                 else:
-                    _LOGGER.error("Status was {}".format(response.json()["Status"]))
+                    self._logout()
                     return False
             except Exception as e:
-                _LOGGER.exception("Something went wrong.")
+                _LOGGER.exception("Something went wrong. Logging out and trying again.")
+                self._logout()
                 return False
 
     def _login(self):
@@ -124,7 +130,7 @@ class DukeEnergy(object):
         the other calls. Unfortunately the service always returns 200 even if you have a wrong
         password.
         """
-        self.session = requests.Session()
+        _LOGGER.debug("Logging in.")
         data = {"userId": self.email, "userPassword": self.password, "deviceprofile": "mobile"}
         headers = LOGIN_HEADERS.copy()
         headers.update(USER_AGENT)
@@ -132,13 +138,15 @@ class DukeEnergy(object):
         if response.status_code != 200:
             _LOGGER.error("Failed to log in")
             return False
+        response = self.session.get(METER_ACTIVE_URL, timeout=10)
         return True
 
-    def logout(self):
+    def _logout(self):
         """
         Delete the session.
         """
-        self.session = None
+        _LOGGER.debug("Logging out.")
+        self.session.cookies.clear()
 
     def _get_meters(self):
         """
@@ -155,7 +163,7 @@ class DukeEnergy(object):
                 meter_type, meter_id = meter["text"].split(" - ")
                 meter_start_date = meter["CalendarStartDate"]
                 self.meters.append(Meter(self, meter_type, meter_id, meter_start_date, self.update_interval))
-            self.logout()
+            self._logout()
 
 
 class DukeEnergyException(Exception):
